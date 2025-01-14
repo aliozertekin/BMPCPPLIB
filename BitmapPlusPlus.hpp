@@ -10,6 +10,7 @@
 #include <cstring>   // std::memcmp
 #include <stdexcept> // std::runtime_error
 #include <utility>   // std::exchange
+#include <functional>
 
 namespace bmp {
   // Magic number for Bitmap .bmp 24 bpp files (24/8 = 3 = rgb colors only)
@@ -465,6 +466,71 @@ namespace bmp {
       m_pixels[IX(x, y)] = color;
     }
 
+     /**
+     *	Vertically flips the bitmap and returns the flipped version
+     *  
+     */
+    Bitmap flip_v() {
+        Bitmap finished(m_width, m_height);
+        for (std::int32_t x = 0; x < m_width; ++x) {
+            for (std::int32_t y = 0; y < m_height; ++y) {
+                // Calculate the reverse y-index
+                finished.m_pixels[IX(x, y)] = m_pixels[IX(x, m_height - 1 - y)];
+            }
+        }
+        return finished;
+    }
+
+     /**
+     *	Horizontally flips the bitmap and returns the flipped version
+     *  
+     */
+    Bitmap flip_h() {
+        Bitmap finished(m_width, m_height);
+        for (std::int32_t y = 0; y < m_height; ++y) {
+            for (std::int32_t x = 0; x < m_width; ++x) {
+                // Calculate the reverse x-index
+                finished.m_pixels[IX(x, y)] = m_pixels[IX(m_width - 1 - x, y)];
+            }
+        }
+        return finished;
+    }
+
+    /**
+    *	Rotates the bitmap to the right and returns the rotated version
+    *   
+    */
+    Bitmap rotate_90_left() {
+        Bitmap finished(m_height, m_width); // Swap dimensions
+
+        for (std::int32_t y = 0; y < m_height; ++y) {
+            std::int32_t y_offset = y * m_width; // Precompute row start index
+            for (std::int32_t x = 0; x < m_width; ++x) {
+                // Original pixel at (x, y) moves to (y, m_width - 1 - x)
+                finished.m_pixels[(m_width - 1 - x) * m_height + y] = m_pixels[y_offset + x];
+            }
+        }
+
+        return finished;
+    }
+
+    /**
+    *	Rotates the bitmap to the left and returns the rotated version
+    * 
+    */
+    Bitmap rotate_90_right() {
+        Bitmap finished(m_height, m_width); // Swap dimensions
+        for (std::int32_t y = 0; y < m_height; ++y) {
+            std::int32_t y_offset = y * m_width; // Precompute row start index
+            for (std::int32_t x = 0; x < m_width; ++x) {
+                finished.m_pixels[x * m_height + (m_height - 1 - y)] = m_pixels[y_offset + x];
+            }
+        }
+
+        return finished;
+    }
+
+
     /**
      *	Saves Bitmap pixels into a file
      *   @throws bmp::Exception on error
@@ -583,7 +649,12 @@ namespace bmp {
     [[nodiscard]] constexpr std::size_t IX(const std::int32_t x, const std::int32_t y) const noexcept {
       return static_cast<std::size_t>(x) + static_cast<std::size_t>(m_width) * static_cast<std::size_t>(y);
     }
-
+    /**
+    *	Converts 2D x,y coords into 1D index, with changed width
+    */
+    [[nodiscard]] constexpr std::size_t IX(const std::int32_t x, const std::int32_t y, const std::int32_t width) const noexcept {
+        return static_cast<std::size_t>(x) + static_cast<std::size_t>(m_width) * static_cast<std::size_t>(y);
+    }
     /**
      *	Returns true if x,y coords are within boundaries
      */
