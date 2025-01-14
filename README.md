@@ -277,7 +277,6 @@ int main(void) {
 
 
 ```
-![penguin](images/penguin.bmp)
 ![penguin_flipped_v](images/rotated/penguin_flipped_v.bmp)
 ![penguin_flipped_h](images/rotated/penguin_flipped_h.bmp)
 ![penguin_rotated_right](images/rotated/penguin_rotated_right.bmp)
