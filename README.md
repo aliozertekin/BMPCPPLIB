@@ -236,9 +236,6 @@ int main(void) {
 ```cpp
 #include "BitmapPlusPlus.hpp"
 #include <iostream>
-#include <chrono> // For measuring execution time
-#include <vector> // For storing timings
-
 
 int main(void) {
     try {
@@ -246,7 +243,7 @@ int main(void) {
 
         // Load the original bitmap
         image.load("images/penguin.bmp");
-
+        
         // Test vertical flip
         bmp::Bitmap flipped_v = image.flip_v();
         flipped_v.save("images/rotated/penguin_flipped_v.bmp");
@@ -267,6 +264,8 @@ int main(void) {
         rotated_left.save("images/rotated/penguin_rotated_left.bmp");
         std::cout << "Rotated 90 degrees left saved as penguin_rotated_left.bmp" << std::endl;
 
+        // You can also use the commands on the object itself and chain them together
+        image.rotate_90_left_self().flip_h_self().rotate_90_right_self().flip_v_self().BGRToRGB().save("images/rotated/penguin_self.bmp");
         return EXIT_SUCCESS;
     }
     catch (const bmp::Exception& e) {
@@ -275,13 +274,12 @@ int main(void) {
     }
 }
 
-
 ```
 ![penguin_flipped_v](images/rotated/penguin_flipped_v.bmp)
 ![penguin_flipped_h](images/rotated/penguin_flipped_h.bmp)
 ![penguin_rotated_right](images/rotated/penguin_rotated_right.bmp)
 ![penguin_rotated_left](images/rotated/penguin_rotated_left.bmp)
-
+![penguin_self](images/rotated/penguin_self.bmp)
 <br><br>
 
 <strong>Chess Board</strong>
