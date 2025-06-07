@@ -248,9 +248,9 @@ namespace bmp {
                 return a.second < b.second;
                 });
 
-            const auto& [x_top, y_top] = vertices[0];
-            const auto& [x_mid, y_mid] = vertices[1];
-            const auto& [x_bot, y_bot] = vertices[2];
+            const auto [x_top, y_top] = vertices[0];
+            const auto [x_mid, y_mid] = vertices[1];
+            const auto [x_bot, y_bot] = vertices[2];
 
             // Calculate the slopes of the left and right edges
             const float slope_left = static_cast<float>(x_mid - x_top) / (y_mid - y_top);
@@ -469,7 +469,74 @@ namespace bmp {
         }
 
         /**
-        *	Vertically flips the bitmap, Changes the bitmap object its called in
+        * @brief Resizes the current bitmap in-place by a given scale factor using nearest-neighbor scaling.
+        * @param scale_factor The scale multiplier (must be > 0).
+        * @return Reference to the modified Bitmap (*this).
+        * @throws bmp::Exception if the scale factor is not greater than zero.
+        */
+
+        Bitmap& resize_nearest_self(const int scale_factor) {
+            if (scale_factor <= 0)
+                throw Exception("resize_nearest_self: scale factor must be > 0");
+
+            // Calculate new dimensions
+            const std::int32_t new_width = m_width * scale_factor;
+            const std::int32_t new_height = m_height * scale_factor;
+
+            // Allocate new pixel storage
+            std::vector<Pixel> new_pixels(static_cast<std::size_t>(new_width) * static_cast<std::size_t>(new_height));
+
+            // Fill new image using nearest-neighbor scaling
+            for (std::int32_t y = 0; y < new_height; ++y) {
+                for (std::int32_t x = 0; x < new_width; ++x) {
+                    const std::int32_t src_x = x / scale_factor;
+                    const std::int32_t src_y = y / scale_factor;
+                    new_pixels[static_cast<std::size_t>(x) + static_cast<std::size_t>(new_width) * static_cast<std::size_t>(y)] =
+                        this->get(src_x, src_y);
+                }
+            }
+
+            // Update internal bitmap state
+            m_width = new_width;
+            m_height = new_height;
+            m_pixels = std::move(new_pixels);
+
+            return *this;
+        }
+
+        /**
+        * @brief Creates a new resized bitmap by a given scale factor using nearest-neighbor scaling.
+        * @param scale_factor The scale multiplier (must be > 0).
+        * @return A new resized Bitmap.
+        * @throws bmp::Exception if the scale factor is not greater than zero.
+        */
+        Bitmap resize_nearest(const int scale_factor) const {
+            if (scale_factor <= 0)
+                throw Exception("resize_nearest: scale factor must be > 0");
+
+            // Calculate new dimensions
+            const std::int32_t new_width = m_width * scale_factor;
+            const std::int32_t new_height = m_height * scale_factor;
+
+            // Create new bitmap with enlarged size
+            Bitmap resized(new_width, new_height);
+
+            // Map each pixel from original image to enlarged image
+            for (std::int32_t y = 0; y < new_height; ++y) {
+                for (std::int32_t x = 0; x < new_width; ++x) {
+                    const std::int32_t src_x = x / scale_factor;
+                    const std::int32_t src_y = y / scale_factor;
+                    resized.set(x, y, this->get(src_x, src_y));
+                }
+            }
+
+            return resized;
+        }
+
+
+
+        /**
+        *	Vertically flips the bitmap and returns the flipped version
         *
         */
         Bitmap& flip_v_self() {
@@ -485,7 +552,7 @@ namespace bmp {
         }
 
         /**
-        *	Horizontally flips the bitmap, Changes the bitmap object its called in
+        *	Horizontally flips the bitmap and returns the flipped version
         *
         */
         Bitmap& flip_h_self() {
@@ -501,7 +568,7 @@ namespace bmp {
         }
 
         /**
-        *	Rotates the bitmap to the right, Changes the bitmap object its called in
+        *	Rotates the bitmap to the right and returns the rotated version
         *
         */
         Bitmap& rotate_90_left_self() {
@@ -519,7 +586,7 @@ namespace bmp {
         }
 
         /**
-        *	Rotates the bitmap to the left, Changes the bitmap object its called in
+        *	Rotates the bitmap to the left and returns the rotated version
         *
         */
         Bitmap& rotate_90_right_self() {
@@ -712,10 +779,6 @@ namespace bmp {
                 throw Exception("Bitmap::Load(\"" + filename + "\"): Failed to load bitmap pixels from file.");
         }
     public: /* Utils */
-        /**
-        *	BGR->RGB and RGB->BGR, Changes the bitmap object its called in
-        *
-        */
         Bitmap& BGRToRGB() {
             for (auto& p : this->m_pixels) {
                 // Swap red and blue channels
@@ -724,10 +787,6 @@ namespace bmp {
             return *this;
         }
 #ifdef _WIN32
-        /**
-        *	Converts a Bitmap object into HBITMAP for use in Windows
-        *
-        */
         HBITMAP ConvertToHBITMAP() {
             // Define bitmap info
             BITMAPINFO bmpInfo = { 0 };
